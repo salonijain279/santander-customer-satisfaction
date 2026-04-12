@@ -1,0 +1,34 @@
+# Kaggle competition data — never commit
+# Reason: Kaggle rules prohibit redistribution + files are 55MB+
+data/raw/
+data/processed/
+*.pkl
+*.h5
+
+# Large binary prediction arrays — reproducible from code
+outputs/oof/
+*.npy
+*.npz
+
+# Final submission CSVs — Kaggle redistribution risk
+outputs/submissions/*.csv
+
+# Python cache — not real work, auto-generated
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+*.egg-info/
+
+# Credentials — never commit API keys
+kaggle.json
+.kaggle/
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# NOTE: experiments.csv SHOULD be committed — it is shared work log
+# NOTE: notebooks SHOULD be committed — they are the team's actual work
+# NOTE: reports/ SHOULD be committed — documentation for write-up
+# NOTE: src/ SHOULD be committed — shared code infrastructure
