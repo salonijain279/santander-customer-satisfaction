@@ -3,6 +3,9 @@
 Predict which bank customers are quietly dissatisfied — early
 enough for Santander to step in before they leave.
 
+> [!IMPORTANT]  
+> **Team Members:** Before you start writing any code, please read the [Team Git Workflow](TEAM_WORKFLOW.md) guide carefully so everyone is on the same page!
+
 ## Business problem
 Unhappy customers do not complain. They just close their account
 and move to another bank. Santander wants to identify these
