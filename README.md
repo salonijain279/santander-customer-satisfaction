@@ -1,79 +1,125 @@
-# Santander Customer Satisfaction
+# Santander Customer Satisfaction — Predictive Analytics Project
 
-Predict which bank customers are quietly dissatisfied — early
-enough for Santander to step in before they leave.
+## Overview
 
-> [!IMPORTANT]  
-> **Team Members:** Before you start writing any code, please read the [Team Git Workflow](TEAM_WORKFLOW.md) guide carefully so everyone is on the same page!
+This repository contains the complete machine learning pipeline for predicting customer dissatisfaction at Santander Bank. The project is based on the Kaggle Santander Customer Satisfaction competition dataset.
 
-## Business problem
-Unhappy customers do not complain. They just close their account
-and move to another bank. Santander wants to identify these
-customers 1-3 months before they churn so relationship managers
-can intervene with the right offer or support.
+Dissatisfied customers rarely communicate their concerns before leaving. This model identifies at-risk customers early, enabling proactive intervention before churn occurs.
+
+**Competition:** Kaggle — Santander Customer Satisfaction
+**Evaluation metric:** AUC-ROC
+**Target variable:** 0 = satisfied, 1 = unsatisfied
+
+---
 
 ## Dataset
+
 | Property | Value |
 |---|---|
-| Competition | Kaggle — Santander Customer Satisfaction |
-| Training data | 76,020 customers, 369 features |
-| Test data | 75,818 customers |
-| Target | 0 = satisfied, 1 = unsatisfied |
-| Class balance | 96% satisfied, 4% unsatisfied |
-| Metric | AUC-ROC (accuracy is misleading at 96:4) |
+| Training set | 76,020 customers × 371 columns |
+| Test set | 75,818 customers × 370 columns |
+| Features | 369 anonymized numeric features |
+| Class distribution | 96.04% satisfied, 3.96% unsatisfied |
+| Class ratio | approximately 24:1 |
+| Missing values | encoded as sentinel integers/floats, not NaN |
 
-## Team and file ownership
-| Member | Role | Model | Files owned |
-|---|---|---|---|
-| Saloni | Project lead | XGBoost | src/config.py, src/models.py (XGB), notebook 06 |
-| Shiv | EDA | LightGBM | notebook 01, src/models.py (LGBM), row stats features |
-| Parul | Feature engineering | Random Forest | src/features.py, notebooks 02 and 03 |
-| Madhu | Deep learning | Neural Network MLP | src/models.py (MLP), log transforms |
-| Bhavisha | Validation | Logistic Regression | src/utils.py, notebook 07, temporal deltas |
+---
 
-## Sprint timeline
-| Phase | What happens | Sprint days | Who leads |
-|---|---|---|---|
-| 0 Setup | Repo created, data downloaded, env set up | Day 1 | Saloni |
-| 1 EDA | Explore data, confirm sentinel values, find patterns | Days 1-3 | Shiv |
-| 2 Cleaning | Remove noise, impute sentinels, drop correlated | Days 3-4 | Parul + Bhavisha |
-| 3 Feature eng | Create new features from EDA insights | Day 4-5 | Parul leads, all contribute |
-| 4 Master df | Save master_train.pkl, master_test.pkl, y_train.pkl | Day 5 | Shiv |
-| 5 Baselines | All 5 models run with default settings | Day 6 | One model each |
-| 6 Tuning | Hyperparameter search, multi-seed averaging | Days 7-11 | All members |
-| 7 Ensemble | Blend models, post-process, submit | Days 12-14 | Saloni + Bhavisha |
+## Team
 
-## How to use this repo
+| Member | Model | Primary files |
+|---|---|---|
+| Saloni | XGBoost | src/config.py, notebooks/06_ensemble_submission.ipynb |
+| Shiv | LightGBM | notebooks/01_eda.ipynb |
+| Parul | Random Forest | src/features.py, notebooks/02_cleaning.ipynb, notebooks/03_feature_engineering.ipynb |
+| Madhu | Neural Network (MLP) | notebooks/04_baseline_models.ipynb |
+| Bhavisha | Logistic Regression | src/utils.py, notebooks/07_model_correlation_check.ipynb |
 
-Step 1 — Get the data
-Download from Kaggle and place train.csv and test.csv in data/raw/
-Do not commit these files.
+---
 
-Step 2 — Install dependencies
-pip install -r requirements.txt
+## Repository Structure
 
-Step 3 — Run notebooks in order
-01_eda → 02_cleaning → 03_feature_engineering → 04_baseline_models
-→ 05_hyperparameter_tuning → 06_ensemble_submission
+```
+santander-customer-satisfaction/
+├── data/                          # local only — never committed
+│   ├── raw/                       # place train.csv and test.csv here
+│   └── processed/                 # generated pickle files go here
+├── notebooks/                     # one notebook per project phase
+│   ├── 01_eda.ipynb
+│   ├── 02_cleaning.ipynb
+│   ├── 03_feature_engineering.ipynb
+│   ├── 04_baseline_models.ipynb
+│   ├── 05_hyperparameter_tuning.ipynb
+│   ├── 06_ensemble_submission.ipynb
+│   └── 07_model_correlation_check.ipynb
+├── src/                           # shared Python modules
+│   ├── config.py                  # all project constants and paths
+│   ├── features.py                # cleaning and feature engineering functions
+│   ├── utils.py                   # CV harness, scoring, experiment logging
+│   └── models.py                  # baseline model configurations
+├── outputs/
+│   ├── oof/                       # out-of-fold arrays (local only)
+│   ├── submissions/               # Kaggle submission log
+│   └── feature_importance/        # per-model importance logs
+├── reports/
+│   └── business_translation.md    # business context and recommendations
+├── data_dictionary.md             # complete feature reference
+├── experiments.csv                # experiment tracking log
+├── requirements.txt               # Python dependencies
+└── .gitignore
+```
 
-Step 4 — Log every experiment
-After every model run call log_experiment() from src/utils.py
-This keeps experiments.csv up to date for the whole team.
+---
 
-Step 5 — Log every submission
-Fill in outputs/submissions/submissions_log.md before every
-Kaggle submission. Record public LB AUC after it scores.
+## Project Phases
 
-## Key rules — never break these
-1. Never commit data files — data/raw/ and data/processed/ are gitignored
-2. y (TARGET) lives in y_train.pkl — never merge it into X
-3. Clean train and test together — always concat, clean, split back
-4. StandardScaler fits inside CV fold training split only
-5. SMOTE inside CV folds only — never before the split
-6. Post-processing rules apply to final predictions only
+| Phase | Description | Days |
+|---|---|---|
+| 1 | Exploratory data analysis | Days 1–3 |
+| 2 | Data cleaning | Days 3–4 |
+| 3 | Feature engineering | Days 4–5 |
+| 4 | Master dataframe | Day 5 |
+| 5 | Baseline models | Day 6 |
+| 6 | Hyperparameter tuning | Days 7–11 |
+| 7 | Ensemble and submission | Days 12–14 |
 
-## Experiment results
-See experiments.csv
+---
 
-## Submission history
-See outputs/submissions/submissions_log.md
+## Key EDA Findings
+
+- No customer under age 23 is dissatisfied (confirmed across 1,212 customers)
+- Zero cash balance is the strongest balance-based predictor
+- 65% of unsatisfied customers have zero average balance in last 3 months
+- var36 = 99 appears in 40% of the data — treated as a valid category
+- 34 constant columns confirmed and removed
+- 26 delta columns contain 1e10 sentinel — all dropped
+
+---
+
+## Models
+
+| Model | Category | Imbalance handling |
+|---|---|---|
+| Logistic Regression | Linear | class_weight=balanced |
+| Random Forest | Bagging ensemble | class_weight=balanced |
+| XGBoost | Gradient boosting | scale_pos_weight=20 |
+| LightGBM | Leaf-wise boosting | is_unbalance=True |
+| Neural Network (MLP) | Deep learning | class_weight={0:1, 1:24} |
+
+---
+
+## Data Integrity Rules
+
+1. Never commit any file from data/ — gitignored automatically
+2. y_train.pkl is always separate from X — never merge until model.fit()
+3. Cleaning always on concat(train + test) — split back after
+4. StandardScaler fit on fold training split only
+5. SMOTE inside CV folds only — never before splitting
+6. Post-processing on final predictions only — never during training
+
+---
+
+## Experiment Tracking
+
+All model runs logged in experiments.csv
+All Kaggle submissions logged in outputs/submissions/submissions_log.md
