@@ -32,3 +32,4 @@ Thumbs.db
 # NOTE: notebooks SHOULD be committed — they are the team's actual work
 # NOTE: reports/ SHOULD be committed — documentation for write-up
 # NOTE: src/ SHOULD be committed — shared code infrastructure
+.DS_Store
