@@ -1,51 +1,53 @@
-# Business translation — from model score to bank action
+# Business Context — Santander Customer Satisfaction
 
-## The problem in plain English
-Santander has 76,000 customers.
-About 3,000 of them are unhappy right now.
-They will not tell the bank. They will just quietly close their account.
-Our model gives each customer a score from 0 to 1.
-0 means very likely satisfied. 1 means very likely dissatisfied.
-The bank uses that score to decide what to do.
+## Problem Statement
 
-## What the score means and what the bank should do
+Santander Bank serves millions of retail banking customers. A proportion of these customers are dissatisfied with their banking experience. Critically, dissatisfied customers rarely communicate their concerns — they simply close their accounts and move to a competitor without warning.
 
-| Score | What it means | What the bank should do |
+Early identification of at-risk customers allows relationship managers to intervene with targeted offers or service improvements before the customer churns.
+
+---
+
+## Model Output and Recommended Actions
+
+The model assigns each customer a probability score between 0 and 1. Score of 0 = very likely satisfied. Score of 1 = very likely dissatisfied.
+
+| Score | Risk level | Recommended action |
 |---|---|---|
-| 0.7 or above | High risk of leaving | Call the customer within 24 hours. Assign a dedicated relationship manager. Offer a loyalty package or fee waiver. |
-| 0.4 to 0.7 | Moderate risk | Send a personalised satisfaction survey. Offer a product upgrade. |
-| 0.2 to 0.4 | Low risk | Include in next monthly customer outreach. Monitor for changes. |
-| Below 0.2 | Satisfied | No action needed. |
+| 0.70 and above | Critical | Direct contact within 24 hours. Assign relationship manager. Offer retention package. |
+| 0.40 to 0.70 | High | Send personalised satisfaction survey. Offer product upgrade or fee waiver. |
+| 0.20 to 0.40 | Moderate | Include in next outreach campaign. Monitor for changes. |
+| Below 0.20 | Low | No immediate action required. |
 
-## Business sub-questions this model answers
+---
 
-Q1: Which customers are at risk right now?
-All customers with a score above 0.4 — roughly 3-5% of the base.
+## Business Sub-Questions
 
-Q2: What are the earliest warning signs?
-Zero cash balance (saldo_var30=0), zero average balance in last
-3 months, low number of products, age above 80.
-These signals appear 1-3 months before typical churn behaviour.
+**Q1: Which customers are at risk right now?**
+Customers with a score above 0.40 — approximately 3 to 5 percent of the total customer base.
 
-Q3: How early can we detect it?
-The model uses data from the last 1 and 3 months.
-Detection is possible roughly 1-3 months before the customer leaves.
+**Q2: What are the earliest detectable signals?**
+- Zero cash balance (saldo_var30 = 0)
+- Zero average balance last 3 months (saldo_medio_var5_ult3 = 0)
+- Low number of active products (num_var4)
+- Customer age above 80
 
-Q4: Why not just use accuracy?
-Because accuracy = 96% if we predict everyone is satisfied.
-That is useless. AUC-ROC measures how well we separate the two groups.
-Our target is AUC above 0.84.
+These signals appear 1 to 3 months before observable churn.
 
-Q5: What is the financial impact?
-If the model catches 50% of at-risk customers:
-3,000 unhappy customers × 50% caught = 1,500 interventions
-If 40% of those interventions retain the customer = 600 saved
-At $3,000 average customer lifetime value = $1.8M retained revenue
-This is conservative and for one customer cohort only.
+**Q3: How early can the model detect dissatisfaction?**
+The model uses data from the last 1 and 3 months. Detection is possible approximately 1 to 3 months before churn.
 
-## For the presentation
-Lead with the business problem and impact.
-Show the score-to-action table as a visual.
-Only introduce the technical details after the business case is clear.
-The professor wants to see that you understand why this matters,
-not just that you can run a model.
+**Q4: Why AUC-ROC and not accuracy?**
+At 96:4 imbalance, predicting everyone as satisfied gives 96% accuracy but zero predictive value. AUC-ROC measures how well the model separates the two groups regardless of imbalance. A score of 0.84 means the model correctly ranks a dissatisfied customer above a satisfied one 84% of the time.
+
+---
+
+## Estimated Business Impact
+
+| Metric | Value |
+|---|---|
+| At-risk customers identified (50% detection) | 1,500 |
+| Successful retentions (40% intervention rate) | 600 |
+| Estimated revenue retained at $3,000 LTV | $1,800,000 |
+
+Conservative single-cohort estimate.
