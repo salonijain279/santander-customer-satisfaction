@@ -30,8 +30,16 @@ def get_skf():
     Always use this — never create StratifiedKFold inline in notebooks.
     Guarantees identical folds across all team members.
     """
-    pass  # Bhavisha to implement
+    return StratifiedKFold(
+        n_splits=CV_N_SPLITS,
+        shuffle=True,
+        random_state=CV_RANDOM_STATE
+    )
 
+def auc(y_true, y_pred):
+    """Simple AUC-ROC scorer. Use this everywhere — never use accuracy."""
+    return roc_auc_score(y_true, y_pred)
+    
 
 def run_cv(model, X, y, scale=False, model_name='model'):
     """
