@@ -159,7 +159,35 @@ def add_log_transforms(df):
 
     Columns to transform: all saldo_* , all imp_* , and var38
     """
-    pass  # Madhu to implement (per sprint Day 4 assignment)
+    df = df.copy()
+
+    saldo_cols = [c for c in df.columns if c.startswith('saldo_')]
+    imp_cols   = [c for c in df.columns if c.startswith('imp_')]
+    extra_cols = ['var38']
+
+    cols_to_transform = saldo_cols + imp_cols + extra_cols
+    print(f"Transforming {len(cols_to_transform)} columns")
+    print(f"  saldo_: {len(saldo_cols)} | imp_: {len(imp_cols)} | extra: {len(extra_cols)}")
+
+    log_data = {
+        f'log1p_{col}': np.log1p(df[col].clip(lower=0))
+        for col in cols_to_transform
+    }
+    df = pd.concat([df, pd.DataFrame(log_data, index=df.index)], axis=1)
+
+
+    # Verify no inf or NaN introduced
+    log_cols   = [f'log1p_{c}' for c in cols_to_transform]
+    inf_count  = np.isinf(df[log_cols]).sum().sum()
+    null_count = df[log_cols].isnull().sum().sum()
+
+    assert inf_count  == 0, f"ERROR: {inf_count} inf values found!"
+    assert null_count == 0, f"ERROR: {null_count} NaN values found!"
+    print(f"New log columns added: {len(log_cols)}")
+    print(f"Total shape: {df.shape}")
+    print(f"✅ No inf or NaN — log transforms clean")
+
+    return df
 
 
 def add_temporal_deltas(df):
