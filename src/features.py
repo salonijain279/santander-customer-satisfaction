@@ -66,10 +66,6 @@ def drop_delta_cols(df):
 
 def impute_sentinels(df):
     """
-    Replace known sentinel values with proper treatment.
-    Also creates binary flag columns so the missingness itself
-    can be used as a predictor.
-
     Rules confirmed from EDA:
     - var3 == -999999     : 116 rows  → replace with mode, add var3_missing flag
     - var36 == 99         : 30064 rows → keep as category (too frequent to drop),
@@ -77,7 +73,33 @@ def impute_sentinels(df):
     - var38 == 117310.979 : 14868 rows → replace with NaN then median,
                             add var38_was_mode flag
     """
-    pass  # Parul to implement (Madhu did sentinel analysis on Day 3)
+    df = df.copy()
+
+    # --- var3: -999999 = unknown nationality ---
+    var3_mode = df.loc[df['var3'] != VAR3_SENTINEL, 'var3'].mode()[0]
+    df['var3_missing'] = (df['var3'] == VAR3_SENTINEL).astype(int)
+    df['var3'] = df['var3'].replace(VAR3_SENTINEL, var3_mode)
+    print(f"var3: replaced {VAR3_SENTINEL} with mode={var3_mode} | flag: var3_missing")
+
+    # --- var36: 99 = dominant missing category ---
+    df['var36_is_99'] = (df['var36'] == VAR36_SENTINEL).astype(int)
+    var36_mode = df.loc[df['var36'] != VAR36_SENTINEL, 'var36'].mode()[0]
+    df['var36'] = df['var36'].replace(VAR36_SENTINEL, var36_mode)
+    print(f"var36: replaced {VAR36_SENTINEL} with mode={var36_mode} | flag: var36_is_99")
+
+    # --- var38: sentinel → NaN → median ---
+    df['var38_was_mode'] = (df['var38'] == VAR38_SENTINEL).astype(int)
+    df['var38'] = df['var38'].replace(VAR38_SENTINEL, np.nan)
+    var38_median = df['var38'].median()
+    df['var38'] = df['var38'].fillna(var38_median)
+    print(f"var38: sentinel → NaN → median={var38_median:.4f} | flag: var38_was_mode")
+
+    # --- Verify zero nulls ---
+    remaining_nulls = df.isnull().sum().sum()
+    assert remaining_nulls == 0, f"ERROR: {remaining_nulls} nulls remain after imputation!"
+    print(f"✅ Zero nulls confirmed. Shape: {df.shape}")
+
+    return df
 
 
 def drop_high_correlation_cols(df, threshold=0.98):
