@@ -1,6 +1,7 @@
 # Kaggle competition data — never commit
 # Reason: Kaggle rules prohibit redistribution + files are 55MB+
 data/raw/
+data/processed/
 *.pkl
 *.h5
 
