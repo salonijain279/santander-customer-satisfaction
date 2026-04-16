@@ -1,115 +1,148 @@
-# Team Workflow — Git and Collaboration Guide
+# Team Git Workflow — Santander Customer Satisfaction
+
+This document explains how our team collaborates using Git branches,  
+so everyone's work stays organized and nothing breaks main.
 
 ---
 
-## Initial Setup (one time only — Day 1)
+## Branch Structure
 
-**Step 1 — Clone the repository:**
-```
-git clone https://github.com/salonijain279/santander-customer-satisfaction.git
-cd santander-customer-satisfaction
-```
+### `main` — Protected, Always Clean
+- This is the **official, stable version** of the project
+- **Never work directly on main** — always use a feature branch
+- Only merged into via Pull Requests (PRs) after review
+- Should always be in a state where the notebooks run end-to-end
 
-**Step 2 — Install all libraries:**
-```
-pip install -r requirements.txt
-```
-
-**Step 3 — Create the data folder locally:**
-```
-mkdir -p data/raw
-mkdir -p data/processed
-```
-
-**Step 4 — Download data from Kaggle:**
-Download train.csv and test.csv from the competition page and place both files inside data/raw/. These files are gitignored and will never be committed.
+### Feature Branches — Where All Work Happens
+- Created from `main` for each new piece of work
+- Naming convention: `your-name/what-you-are-doing`
+  - Examples: `dagur/xgboost-baseline`, `saloni/feature-engineering`, `dev`
+- One branch per task or notebook — keeps PRs small and reviewable
 
 ---
 
-## Daily Workflow (every working day)
+## Step-by-Step Workflow
 
-**Morning — before touching anything:**
-```
-git pull
-```
-Downloads all changes your teammates pushed. Always do this first.
+### 1. Start New Work — Create a Feature Branch
 
-**During the day:**
-Work in your assigned notebook or file as normal.
+Always branch off the latest `main`:
 
-**Evening — after finishing:**
-```
-git add .
-git commit -m "Name: what you completed today"
-git push
+```bash
+git checkout main
+git pull origin main              # get latest changes from team
+git checkout -b your-name/task   # create your branch
 ```
 
-**Commit message examples:**
-```
-Saloni: XGBoost baseline complete, CV AUC 0.821
-Parul: drop_constant_cols and impute_sentinels implemented
-Bhavisha: run_cv function built with leakage prevention
-Shiv: sparsity map and var38 analysis done
-Madhu: MLP baseline running, CV AUC 0.807
+Example:
+```bash
+git checkout main
+git pull origin main
+git checkout -b dagur/xgboost-baseline
 ```
 
 ---
 
-## File Ownership
+### 2. Do Your Work
 
-Do not edit another member's files without coordinating first.
+Work in your branch. Save progress often with commits:
 
-| Member | Files owned |
+```bash
+git add -A                                  # stage all changes
+git commit -m "short description of what you did"
+```
+
+Good commit messages:
+```
+feat: train XGBoost baseline, AUC = 0.83
+fix: correct var3 sentinel value replacement
+chore: update .gitignore to exclude pkl files
+```
+
+---
+
+### 3. Push Your Branch to GitHub
+
+```bash
+git push origin your-name/task
+```
+
+If it's your first push on this branch:
+```bash
+git push -u origin your-name/task
+```
+
+---
+
+### 4. Create a Pull Request (PR)
+
+1. Go to the repo on GitHub: [salonijain279/santander-customer-satisfaction](https://github.com/salonijain279/santander-customer-satisfaction)
+2. You'll see a yellow banner: **"Compare & pull request"** — click it
+3. Fill in:
+   - **Title:** Short summary of what this PR adds
+   - **Description:** What you did, why, and any results/metrics
+4. Set **base:** `main` ← **compare:** `your-branch`
+5. Click **"Create pull request"**
+
+---
+
+### 5. Review the Work
+
+Before merging, at least one teammate should:
+
+- Read through the PR description
+- Look at the **Files changed** tab — check the key changes make sense
+- Run the notebook locally if it's a major change
+- Leave comments if anything needs to change
+- Click **"Approve"** when satisfied
+
+> The person who opened the PR should **not** merge their own PR without a review.
+
+---
+
+### 6. Merge to Main
+
+Once the PR is approved:
+
+1. Click **"Merge pull request"** on GitHub
+2. Choose **"Squash and merge"** for a clean history (combines all commits into one)
+3. Delete the branch after merging — GitHub will offer a button for this
+
+Then update your local `main`:
+```bash
+git checkout main
+git pull origin main
+```
+
+---
+
+## Quick Reference
+
+| Action | Command |
 |---|---|
-| Saloni | src/config.py, notebooks/06 |
-| Shiv | notebooks/01 |
-| Parul | src/features.py, notebooks/02, notebooks/03 |
-| Madhu | notebooks/04 (MLP section) |
-| Bhavisha | src/utils.py, notebooks/07 |
-| All | src/models.py (own function each), notebooks/05, experiments.csv |
+| Get latest main | `git checkout main && git pull origin main` |
+| Create feature branch | `git checkout -b your-name/task` |
+| Save progress | `git add -A && git commit -m "message"` |
+| Push branch | `git push origin your-name/task` |
+| Switch branches | `git checkout branch-name` |
+| See all branches | `git branch -a` |
+| See what changed | `git status` |
+| See commit history | `git log --oneline -10` |
 
 ---
 
-## Shared Files — Update After Every Run
+## Rules
 
-experiments.csv — one row per model run, every time without exception
-outputs/submissions/submissions_log.md — before every Kaggle submission
-outputs/feature_importance/feature_importance_log.md — top 5 features after every model run
-
----
-
-## If Push Fails
-
-Someone pushed while you were working. Run:
-```
-git pull
-git push
-```
-
-If a conflict appears in the same file, contact Saloni.
+1. **Never force-push to `main`** — it rewrites history for everyone
+2. **Always pull main before branching** — avoids merge conflicts
+3. **Keep PRs small** — one notebook or one feature per PR
+4. **Don't commit data files** — they're in `.gitignore` (Kaggle rules + file size)
+5. **Don't merge your own PR** — get at least one teammate to review first
 
 ---
 
-## What Gets Committed and What Does Not
+## Current Branches
 
-| Item | Committed | Reason |
-|---|---|---|
-| Notebooks | Yes | Team's actual work |
-| src/ files | Yes | Shared code |
-| Markdown files | Yes | Documentation |
-| experiments.csv | Yes | Shared log |
-| data/raw/*.csv | No | Kaggle rules + 55MB file size |
-| data/processed/*.pkl | No | Large, reproducible from code |
-| outputs/oof/*.npy | No | Large, reproducible |
-| outputs/submissions/*.csv | No | Kaggle redistribution rules |
-| .DS_Store | No | Mac system file |
-
----
-
-## Rules — Never Break
-
-1. git pull every morning before starting
-2. Never commit any file from data/
-3. Never change constants in src/config.py
-4. StandardScaler and encoders always fit inside CV folds only
-5. Log every model run in experiments.csv before moving on
+| Branch | Purpose |
+|---|---|
+| `main` | Stable, reviewed work only |
+| `dev` | Current active development (EDA + Feature Engineering) |
