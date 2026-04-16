@@ -1,133 +1,148 @@
-# Team Workflow — Git and Collaboration Guide
+# Team Git Workflow — Santander Customer Satisfaction
+
+This document explains how our team collaborates using Git branches,  
+so everyone's work stays organized and nothing breaks main.
 
 ---
 
-## Initial Setup (one time only — Day 1)
+## Branch Structure
 
-**Step 1 — Clone the repository:**
-```
-git clone https://github.com/salonijain279/santander-customer-satisfaction.git
-cd santander-customer-satisfaction
-```
+### `main` — Protected, Always Clean
+- This is the **official, stable version** of the project
+- **Never work directly on main** — always use a feature branch
+- Only merged into via Pull Requests (PRs) after review
+- Should always be in a state where the notebooks run end-to-end
 
-**Step 2 — Install all libraries:**
-```
-pip install -r requirements.txt
-```
-
-**Step 3 — Create the data folder locally:**
-```
-mkdir -p data/raw
-mkdir -p data/processed
-```
-
-**Step 4 — Download data from Kaggle:**
-Download train.csv and test.csv from the competition page and place both files inside data/raw/. These files are gitignored and will never be committed.
+### Feature Branches — Where All Work Happens
+- Created from `main` for each new piece of work
+- Naming convention: `your-name/what-you-are-doing`
+  - Examples: `dagur/xgboost-baseline`, `saloni/feature-engineering`, `dev`
+- One branch per task or notebook — keeps PRs small and reviewable
 
 ---
 
-## Daily Workflow (every working day)
+## Step-by-Step Workflow
 
-**Morning — before touching anything:**
-```
-git pull
-```
-Downloads all changes your teammates pushed. Always do this first.
+### 1. Start New Work — Create a Feature Branch
 
-**During the day:**
-Work in your assigned notebook or file as normal.
+Always branch off the latest `main`:
 
-**Evening — after finishing:**
-```
-git add .
-git commit -m "Name: what you completed today"
-git push
+```bash
+git checkout main
+git pull origin main              # get latest changes from team
+git checkout -b your-name/task   # create your branch
 ```
 
-**Commit message examples:**
-```
-Saloni: XGBoost baseline complete, CV AUC 0.821
-Parul: drop_constant_cols and impute_sentinels implemented
-Bhavisha: run_cv function built with leakage prevention
-Shiv: sparsity map and var38 analysis done
-Madhu: MLP baseline running, CV AUC 0.807
+Example:
+```bash
+git checkout main
+git pull origin main
+git checkout -b dagur/xgboost-baseline
 ```
 
 ---
 
-## File Ownership and Day-by-Day Plan
+### 2. Do Your Work
 
-### Who works in which notebook each day
+Work in your branch. Save progress often with commits:
 
-| Day | Saloni | Shiv | Parul | Madhu | Bhavisha |
-|---|---|---|---|---|---|
-| 1 | Repo setup, config.py | 01_eda.ipynb — load data, class balance | 01_eda.ipynb — prefix taxonomy | Environment setup | experiments.csv setup |
-| 2 | 01_eda.ipynb — Layer 1, 2 | 01_eda.ipynb — Layer 3 sparsity | 01_eda.ipynb — var15 deep dive | 01_eda.ipynb — var38 deep dive | 01_eda.ipynb — train vs test KDE |
-| 3 | 01_eda.ipynb — Layer 4 correlation + top 50 | 01_eda.ipynb — Layer 5 scatter + heatmap | 02_cleaning.ipynb — drop constants + duplicates | 02_cleaning.ipynb — sentinel imputation | 02_cleaning.ipynb — drop sparse + correlated |
-| 4 | Review + verify cleaning shapes | 03_feature_engineering.ipynb — row statistics | 03_feature_engineering.ipynb — rule flags | 03_feature_engineering.ipynb — log transforms | 03_feature_engineering.ipynb — temporal deltas |
-| 5 | Feature selection — save top_250 and top_50 | Save master_train.pkl, master_test.pkl, y_train.pkl | Finalise features.py | StandardScaler + PCA pipelines | Build utils.py CV harness |
-| 6 | 04_baseline_models.ipynb — XGBoost | 04_baseline_models.ipynb — LightGBM | 04_baseline_models.ipynb — Random Forest | 04_baseline_models.ipynb — MLP | 04_baseline_models.ipynb — Logistic Regression |
-| 7 | Compile all 5 AUC scores | 05_hyperparameter_tuning.ipynb — LGBM tuning | 05_hyperparameter_tuning.ipynb — RF tuning | 05_hyperparameter_tuning.ipynb — MLP tuning | 05_hyperparameter_tuning.ipynb — LogReg tuning |
-| 8 | 05_hyperparameter_tuning.ipynb — XGB Bayesian tuning | Review LGBM results | Test XGBRFClassifier | keras_tuner Hyperband | Collect all OOF arrays |
-| 9 | Finalise XGBoost — 5 seeds | Finalise LightGBM — 5 seeds | Finalise Random Forest — 5 seeds | Finalise MLP — 5 seeds | Finalise LogReg — 5 seeds |
-| 10 | 06_ensemble_submission.ipynb — weighted blend | Rank-average blend | Stack Layer 1 — LogReg meta | Stack Layer 2 — XGB meta | Post-processing rules |
-| 11 | Compare public LB vs CV AUC | LGBM experiments | RF + PCA experiment | SMOTE vs no-SMOTE ablation | Compile experiment summary |
-| 12 | Final XGBoost — full train + 10 seeds | Final LightGBM — full train + 10 seeds | Final RF — full train + 10 seeds | Final MLP — full train + 5 seeds | Final LogReg + stacking |
-| 13 | Build 3 submission files, validate all | Write README updates | Write feature engineering docs | Write model documentation | Write validation strategy doc |
-| 14 | Submit to Kaggle, select final 2 | Presentation slides | Finalise notebooks | Finalise notebooks | Repo cleanup |
+```bash
+git add -A                                  # stage all changes
+git commit -m "short description of what you did"
+```
 
-### File ownership (src/ files)
+Good commit messages:
+```
+feat: train XGBoost baseline, AUC = 0.83
+fix: correct var3 sentinel value replacement
+chore: update .gitignore to exclude pkl files
+```
 
-| Member | Files owned |
+---
+
+### 3. Push Your Branch to GitHub
+
+```bash
+git push origin your-name/task
+```
+
+If it's your first push on this branch:
+```bash
+git push -u origin your-name/task
+```
+
+---
+
+### 4. Create a Pull Request (PR)
+
+1. Go to the repo on GitHub: [salonijain279/santander-customer-satisfaction](https://github.com/salonijain279/santander-customer-satisfaction)
+2. You'll see a yellow banner: **"Compare & pull request"** — click it
+3. Fill in:
+   - **Title:** Short summary of what this PR adds
+   - **Description:** What you did, why, and any results/metrics
+4. Set **base:** `main` ← **compare:** `your-branch`
+5. Click **"Create pull request"**
+
+---
+
+### 5. Review the Work
+
+Before merging, at least one teammate should:
+
+- Read through the PR description
+- Look at the **Files changed** tab — check the key changes make sense
+- Run the notebook locally if it's a major change
+- Leave comments if anything needs to change
+- Click **"Approve"** when satisfied
+
+> The person who opened the PR should **not** merge their own PR without a review.
+
+---
+
+### 6. Merge to Main
+
+Once the PR is approved:
+
+1. Click **"Merge pull request"** on GitHub
+2. Choose **"Squash and merge"** for a clean history (combines all commits into one)
+3. Delete the branch after merging — GitHub will offer a button for this
+
+Then update your local `main`:
+```bash
+git checkout main
+git pull origin main
+```
+
+---
+
+## Quick Reference
+
+| Action | Command |
 |---|---|
-| Saloni | src/config.py, notebooks/06_ensemble_submission.ipynb |
-| Shiv | notebooks/01_eda.ipynb |
-| Parul | src/features.py, notebooks/02_cleaning.ipynb, notebooks/03_feature_engineering.ipynb |
-| Madhu | notebooks/04_baseline_models.ipynb (MLP section) |
-| Bhavisha | src/utils.py, notebooks/05_hyperparameter_tuning.ipynb |
+| Get latest main | `git checkout main && git pull origin main` |
+| Create feature branch | `git checkout -b your-name/task` |
+| Save progress | `git add -A && git commit -m "message"` |
+| Push branch | `git push origin your-name/task` |
+| Switch branches | `git checkout branch-name` |
+| See all branches | `git branch -a` |
+| See what changed | `git status` |
+| See commit history | `git log --oneline -10` |
 
 ---
 
-## Shared Files — Update After Every Run
+## Rules
 
-experiments.csv — one row per model run, every time without exception
-outputs/submissions/submissions_log.md — before every Kaggle submission
-outputs/feature_importance/feature_importance_log.md — top 5 features after every model run
-
----
-
-## If Push Fails
-
-Someone pushed while you were working. Run:
-```
-git pull
-git push
-```
-
-If a conflict appears in the same file, contact Saloni.
+1. **Never force-push to `main`** — it rewrites history for everyone
+2. **Always pull main before branching** — avoids merge conflicts
+3. **Keep PRs small** — one notebook or one feature per PR
+4. **Don't commit data files** — they're in `.gitignore` (Kaggle rules + file size)
+5. **Don't merge your own PR** — get at least one teammate to review first
 
 ---
 
-## What Gets Committed and What Does Not
+## Current Branches
 
-| Item | Committed | Reason |
-|---|---|---|
-| Notebooks | Yes | Team's actual work |
-| src/ files | Yes | Shared code |
-| Markdown files | Yes | Documentation |
-| experiments.csv | Yes | Shared log |
-| data/raw/*.csv | No | Kaggle rules + 55MB file size |
-| data/processed/*.pkl | No | Large, reproducible from code |
-| outputs/oof/*.npy | No | Large, reproducible |
-| outputs/submissions/*.csv | No | Kaggle redistribution rules |
-| .DS_Store | No | Mac system file |
-
----
-
-## Rules — Never Break
-
-1. git pull every morning before starting
-2. Never commit any file from data/
-3. Never change constants in src/config.py
-4. StandardScaler and encoders always fit inside CV folds only
-5. Log every model run in experiments.csv before moving on
+| Branch | Purpose |
+|---|---|
+| `main` | Stable, reviewed work only |
+| `dev` | Current active development (EDA + Feature Engineering) |

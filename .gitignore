@@ -4,7 +4,7 @@ data/raw/
 data/processed/
 *.pkl
 *.h5
-
+data/processed/
 # Large binary prediction arrays — reproducible from code
 outputs/oof/
 *.npy
