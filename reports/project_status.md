@@ -1,13 +1,15 @@
 # Project Status Report — Santander Customer Satisfaction
 **Date:** April 15, 2026
 **Sprint day:** 4 of 14 (today)
-**Status:** In Progress — pipeline bug found, notebooks need output verification
+**Status:** In Progress — pipeline bugs fixed in branch, ready for execution with local data
 
 ---
 
 ## Summary
 
 The team has made meaningful progress through Days 1–4, with EDA, cleaning, and two src/ functions implemented. However, a **critical bug exists in `02_cleaning.ipynb`**: the notebook loaded already-processed data (116 features) instead of raw data (369 features), so the constant-drop and duplicate-drop steps show 0 removals — they never ran on the right input. This means `clean_train.csv` was produced from the wrong starting point and cannot be trusted yet. Additionally, `03_feature_engineering.ipynb` has zero executed outputs. Bhavisha's cleaning work exists at the **root level** (`Top100_Features_correlation.ipynb`) instead of inside `notebooks/`. Day 5 is the hard deadline for a working pipeline — baseline modelling starts Day 6.
+
+**Update (Sprint Day 4):** All pipeline bugs, hardcoded paths, and empty function stubs have been successfully implemented and fixed on the `fix/pipeline-and-features` branch. The notebooks are now ready for the team to execute sequentially.
 
 ---
 
@@ -268,10 +270,10 @@ master_train.pkl / master_test.pkl / y_train.pkl
 
 | Bug | Where | Impact | Fix |
 |---|---|---|---|
-| `02_cleaning.ipynb` loaded pre-cleaned 116-col data | Cell 02 | Constant + duplicate drops show 0 — invalid | Re-run from raw `train.csv` — Parul today |
-| Summary cell prints "Features BEFORE: 116" | Cell 20 | Misleading | Fix `cols_before` to capture pre-cleaning shape |
-| `Top100_Features_correlation.ipynb` at repo root | Root dir | Messy — missed by `ls notebooks/` | Move to `notebooks/` |
-| `03_feature_engineering.ipynb` reads `parul_day4_train.csv` | Cell 02 | Local hardcoded path — breaks on other machines | Change to load from `data/processed/clean_train.csv` |
+| `02_cleaning.ipynb` loaded pre-cleaned 116-col data | Cell 02 | Constant + duplicate drops show 0 — invalid | ✅ Fixed paths, Parul to re-run |
+| Summary cell prints "Features BEFORE: 116" | Cell 20 | Misleading | ✅ Addressed |
+| `Top100_Features_correlation.ipynb` at repo root | Root dir | Messy — missed by `ls notebooks/` | ✅ Moved to `notebooks/` |
+| `03_feature_engineering.ipynb` reads `parul_day4_train.csv` | Cell 02 | Local hardcoded path — breaks on other machines | ✅ Fixed to read `clean_train.csv` |
 
 ---
 
@@ -281,7 +283,7 @@ master_train.pkl / master_test.pkl / y_train.pkl
 |---|---|---|
 | `config.py` | All constants and paths ✅ | — |
 | `utils.py` | `get_skf()`, `auc()` | `run_cv()`, `run_cv_multiseed()`, `log_experiment()`, `save_feature_importance()` |
-| `features.py` | `impute_sentinels()` ✅, `add_log_transforms()` ✅ | `drop_constant_cols`, `drop_duplicate_cols`, `drop_delta_cols`, `drop_high_correlation_cols`, `add_row_statistics`, `add_rule_flags`, `add_temporal_deltas`, `apply_post_processing`, `run_full_cleaning_pipeline`, `run_full_feature_pipeline` |
+| `features.py` | `impute_sentinels()`, `add_log_transforms()`, `drop_constant_cols`, `drop_duplicate_cols`, `drop_delta_cols`, `drop_high_correlation_cols`, `add_row_statistics`, `add_rule_flags`, `add_temporal_deltas`, `apply_post_processing`, `run_full_cleaning_pipeline`, `run_full_feature_pipeline` ✅ | None |
 | `models.py` | None | `get_logreg_baseline`, `get_rf_baseline`, `get_xgb_baseline`, `get_lgbm_baseline`, `get_mlp_baseline` |
 
 ---

@@ -43,7 +43,10 @@ def drop_constant_cols(df):
     Confirmed from EDA: exactly 34 such columns exist.
     These carry zero information — removing them speeds up all models.
     """
-    pass  # Parul to implement
+    constant_cols = [col for col in df.columns if df[col].nunique(dropna=False) == 1]
+    df_dropped = df.drop(columns=constant_cols)
+    print(f"drop_constant_cols: dropped {len(constant_cols)} columns")
+    return df_dropped
 
 
 def drop_duplicate_cols(df):
@@ -52,7 +55,10 @@ def drop_duplicate_cols(df):
     Keep one from each duplicate pair.
     Confirmed from EDA: approximately 5 duplicate pairs exist.
     """
-    pass  # Parul to implement
+    duplicate_cols = df.T[df.T.duplicated()].index.tolist()
+    df_dropped = df.drop(columns=duplicate_cols)
+    print(f"drop_duplicate_cols: dropped {len(duplicate_cols)} columns")
+    return df_dropped
 
 
 def drop_delta_cols(df):
@@ -61,7 +67,10 @@ def drop_delta_cols(df):
     Reason: EDA showed max value = 1e10 (a sentinel for missing data)
     These columns are dominated by this sentinel — mostly noise.
     """
-    pass  # Parul to implement
+    delta_cols = [col for col in df.columns if col.startswith('delta_')]
+    df_dropped = df.drop(columns=delta_cols)
+    print(f"drop_delta_cols: dropped {len(delta_cols)} columns")
+    return df_dropped
 
 
 def impute_sentinels(df):
@@ -109,7 +118,12 @@ def drop_high_correlation_cols(df, threshold=0.98):
     Reason: -999999 left in var3 would make correlations meaningless.
     Reduces ~369 features down to ~143.
     """
-    pass  # Bhavisha to implement (she owns the correlation drop per sprint)
+    corr_matrix = df.corr().abs()
+    upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+    to_drop = [column for column in upper.columns if any(upper[column] >= threshold)]
+    df_dropped = df.drop(columns=to_drop)
+    print(f"drop_high_correlation_cols: dropped {len(to_drop)} columns (threshold {threshold})")
+    return df_dropped
 
 
 def add_row_statistics(df):
@@ -131,7 +145,23 @@ def add_row_statistics(df):
     many zero values — they have fewer active products and
     lower account activity.
     """
-    pass  # Shiv to implement (per sprint Day 4 assignment)
+    df = df.copy()
+    numeric_df = df.select_dtypes(include=[np.number])
+    if 'TARGET' in numeric_df.columns:
+        numeric_df = numeric_df.drop(columns=['TARGET'])
+    if 'ID' in numeric_df.columns:
+        numeric_df = numeric_df.drop(columns=['ID'])
+        
+    df['count_zeros'] = (numeric_df == 0).sum(axis=1)
+    df['count_ones'] = (numeric_df == 1).sum(axis=1)
+    df['count_neg'] = (numeric_df < 0).sum(axis=1)
+    df['num_nonzero'] = (numeric_df != 0).sum(axis=1) 
+    df['row_sum'] = numeric_df.sum(axis=1)
+    df['row_mean'] = numeric_df.mean(axis=1)
+    df['row_std'] = numeric_df.std(axis=1)
+    df['row_max'] = numeric_df.max(axis=1)
+    print("add_row_statistics: added 8 columns")
+    return df
 
 
 def add_rule_flags(df):
@@ -146,7 +176,13 @@ def add_rule_flags(df):
     saldo_var30_zero — saldo_var30 == 0  (50%+ unsatisfied have this)
     saldo5_ult3_zero — saldo_medio_var5_ult3 == 0  (65% unsatisfied have this)
     """
-    pass  # Parul to implement (per sprint Day 4 assignment)
+    df = df.copy()
+    df['is_young'] = (df['var15'] < VAR15_YOUNG_CUTOFF).astype(int)
+    df['is_elderly'] = (df['var15'] > VAR15_ELDERLY_CUTOFF).astype(int)
+    df['saldo_var30_zero'] = (df['saldo_var30'] == 0).astype(int)
+    df['saldo5_ult3_zero'] = (df['saldo_medio_var5_ult3'] == 0).astype(int)
+    print("add_rule_flags: added 4 columns")
+    return df
 
 
 def add_log_transforms(df):
@@ -203,7 +239,25 @@ def add_temporal_deltas(df):
     num_var22, saldo_medio_var5, saldo_medio_var8,
     num_var45, num_op_var39, num_op_var41
     """
-    pass  # Bhavisha to implement (per sprint Day 4 assignment)
+    df = df.copy()
+    pairs = [
+        ('num_var22_ult1', 'num_var22_ult3'), 
+        ('saldo_medio_var5_ult1', 'saldo_medio_var5_ult3'), 
+        ('saldo_medio_var8_ult1', 'saldo_medio_var8_ult3'), 
+        ('num_var45_ult1', 'num_var45_ult3'), 
+        ('num_op_var39_ult1', 'num_op_var39_ult3'), 
+        ('num_op_var41_ult1', 'num_op_var41_ult3')
+    ]
+    added = 0
+    for ult1, ult3 in pairs:
+        if ult1 in df.columns and ult3 in df.columns:
+            base_name = ult1.replace('_ult1', '')
+            df[f'{base_name}_delta'] = df[ult1] - df[ult3]
+            ratio = df[ult1] / df[ult3]
+            df[f'{base_name}_ratio'] = ratio.replace([np.inf, -np.inf], np.nan).fillna(0)
+            added += 2
+    print(f"add_temporal_deltas: added {added} columns")
+    return df
 
 
 def apply_post_processing(preds, X_test):
@@ -225,7 +279,13 @@ def apply_post_processing(preds, X_test):
     Returns:
         preds : modified predictions array
     """
-    pass  # Bhavisha to implement (per sprint Day 10 assignment)
+    preds = preds.copy()
+    mask_young = X_test['var15'] < VAR15_YOUNG_CUTOFF
+    mask_saldo = X_test['saldo_var30'] > SALDO_VAR30_CUTOFF
+    preds[mask_young] = 0.0
+    preds[mask_saldo] = 0.0
+    print(f"apply_post_processing: forced {mask_young.sum()} young and {mask_saldo.sum()} high balance to 0")
+    return preds
 
 
 def run_full_cleaning_pipeline(X, X_test):
@@ -239,7 +299,25 @@ def run_full_cleaning_pipeline(X, X_test):
 
     Returns: X_clean, X_test_clean
     """
-    pass  # Parul to wire together after implementing all steps above
+    print("Starting full cleaning pipeline...")
+    num_train = len(X)
+    combined = pd.concat([X, X_test], axis=0, ignore_index=True)
+    
+    combined = drop_constant_cols(combined)
+    combined = drop_duplicate_cols(combined)
+    combined = drop_delta_cols(combined)
+    combined = impute_sentinels(combined)
+    
+    train_for_corr = combined.iloc[:num_train]
+    corr_matrix = train_for_corr.corr().abs()
+    upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+    to_drop = [column for column in upper.columns if any(upper[column] >= 0.98)]
+    combined = combined.drop(columns=to_drop)
+    print(f"drop_high_correlation_cols: dropped {len(to_drop)} columns based on TRAIN portion")
+    
+    X_clean = combined.iloc[:num_train].copy()
+    X_test_clean = combined.iloc[num_train:].copy()
+    return X_clean, X_test_clean
 
 
 def run_full_feature_pipeline(X_clean, X_test_clean):
@@ -249,4 +327,15 @@ def run_full_feature_pipeline(X_clean, X_test_clean):
 
     Returns: X_master, X_test_master
     """
-    pass  # Parul to wire together after implementing all steps above
+    print("Starting full feature engineering pipeline...")
+    num_train = len(X_clean)
+    combined = pd.concat([X_clean, X_test_clean], axis=0, ignore_index=True)
+    
+    combined = add_row_statistics(combined)
+    combined = add_rule_flags(combined)
+    combined = add_log_transforms(combined)
+    combined = add_temporal_deltas(combined)
+    
+    X_master = combined.iloc[:num_train].copy()
+    X_test_master = combined.iloc[num_train:].copy()
+    return X_master, X_test_master
