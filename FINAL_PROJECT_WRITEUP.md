@@ -55,6 +55,6 @@
 
 ## Screenshot Placeholder
 
-[INSERT SCREENSHOT OF BEST MODEL PERFORMANCE HERE]
+![Kaggle Leaderboard Submissions](pickles/leaderboard_screenshot.png)
 
-*Note: The screenshot confirms the Private Leaderboard score of 0.82745, validating the stability of the 5-fold Stratified CV strategy against the hidden test set.*
+*Note: The screenshot confirms the Private Leaderboard score of 0.82745 and the Public Score of 0.84101, validating the stability of the 5-fold Stratified CV strategy against the hidden test set.*
