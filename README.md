@@ -27,7 +27,9 @@ santander-customer-satisfaction/
 │   ├── 09_CatBoost.ipynb
 │   ├── 10_Advanced_Feature_Engineering.ipynb
 │   ├── 11_Optuna_Tuning.ipynb
-│   └── 12_Advanced_Tuning_XGB_Cat.ipynb
+│   ├── 12_Advanced_Tuning_XGB_Cat.ipynb
+│   ├── 13_Ensemble-best-allinone_saloni.ipynb  # Champion Nelder-Mead Blend
+│   └── 14_logistic-regression.ipynb           # Baseline exploration
 ├── pickles/               # OOF and Test predictions (lgbm_oof.pkl, etc.)
 ├── requirements.txt
 └── README.md
@@ -86,45 +88,34 @@ The breakthrough notebook where we implemented:
 ### `11_Optuna_Tuning.ipynb` & `12_Advanced_Tuning_XGB_Cat.ipynb`
 Automated Bayesian hyperparameter optimization using **Optuna**. Ran 100 trials for each booster to find the "Gold Tier" configuration for `learning_rate`, `max_depth`, and `lambda` regularization.
 
-### `08_Ensemble_Stacking.ipynb` — The Final Stage
-The "Meta-Model" notebook that combines all previous work.
-*   **Simple Average:** Provides a stable, high-performance baseline.
-*   **Logistic Regression Stacking:** Learns the optimal weights for each model family based on their OOF performance.
+### `13_Ensemble-best-allinone_saloni.ipynb` — The Champion Model
+The master ensemble notebook. Instead of simple stacking, it uses **Nelder-Mead optimization** to find the precise mathematical weights for each of the "Big Five" models. This optimization achieved our peak performance of **0.82745** on the Private Leaderboard.
+
+### `14_logistic-regression.ipynb` — Baseline Benchmarking
+An exploratory notebook focusing on the Linear Model family. While it served as a robust baseline (CV AUC ~0.804), it confirmed that the complex non-linear interactions in the data are best captured by our tree-based boosters.
 
 ---
 
 ## Model Ensemble Architecture
 
-Our winning strategy relies on a **Stacked Generalization** architecture:
+Our winning strategy relies on a **Weighted Blend Optimization** architecture:
 
-1.  **Level 0 (Base Models):** Five models from four different families (GBDT, Bagging, Deep Learning) are trained on the same 5-fold CV split.
-2.  **OOF Generation:** Each model generates "Out-Of-Fold" predictions—predicting on the 20% validation set during training. This creates a new "meta-feature" set where each row represents the model's unbiased estimate.
-3.  **Level 1 (Meta-Model):** A Logistic Regression model is trained using the OOF predictions as input and the actual `TARGET` as the label. It learns to weight the "Boosters" heavily but uses the "NN" and "RF" to smooth out errors.
+1.  **Level 0 (Base Models):** Five models from four different families (LGBM, XGB, CAT, RF, MLP) trained on the same 5-fold CV split.
+2.  **OOF Generation:** Each model generates "Out-Of-Fold" predictions to create an unbiased meta-feature set.
+3.  **Level 1 (Optimization):** Used the **Nelder-Mead algorithm** to minimize the log-loss of the weighted average. This effectively "learnt" that the LightGBM and CatBoost models were the most reliable, while the MLP provided critical diversity to reduce variance.
 
 ---
 
 ## Session Log
 
-### May 2, 2026
+### May 4, 2026
 
-#### Model Diversification & The "Big Five" Ensemble
-- **Goal:** Break the 0.825 AUC barrier by moving beyond a single model.
-- **Strategy:** Built a diverse ensemble across four distinct model families:
-  - **Boosting:** LightGBM, XGBoost (GPU), and CatBoost.
-  - **Bagging:** Random Forest.
-  - **Deep Learning:** Neural Network (MLP) with `StandardScaler` integration.
-- **Advanced Feature Engineering ("Santander Special"):**
-  - Added row-wise statistics: `count_zeros` and `count_non_zeros` to capture product usage density.
-  - Created strategic interaction features (e.g., `var15 * var38`) to capture non-linear relationships between age and account value.
-- **Hyperparameter Optimization:**
-  - Conducted extensive **Optuna** studies (100 trials each) for LightGBM, XGBoost, and CatBoost.
-  - Achieved a significant boost in CV AUC (from ~0.838 to **0.841**) by finding the "Gold Tier" parameters for the advanced feature set.
-
-#### Ensembling & Stacking Strategy
-- **Methodology:** Implemented **Stacking** to combine the "expert opinions" of all five models.
-- **Leak-Free Validation:** Used **Out-Of-Fold (OOF)** predictions. Each model predicts on the 20% validation fold it never saw during training, ensuring no data leakage.
-- **Meta-Model:** Trained a `LogisticRegression` "Final Judge" on the OOF predictions. The meta-model learns which base model to trust for specific types of customers.
-- **Results:** The ensemble reached a Private Leaderboard score of **0.82716**.
+#### Finalization & Academic Reporting
+- **Champion Model Finalization:** Finalized the **Nelder-Mead Ensemble** weights, achieving a Private Leaderboard score of **0.82745**.
+- **Project Documentation:**
+  - Generated a professional, table-driven **FINAL_PROJECT_WRITEUP.md**.
+  - Created a script-based conversion to **Word (.docx)** format for academic submission.
+- **Repository Cleanup:** Moving all final code to the `main` branch and implementing a robust `.gitignore` to handle large binary artifacts.
 
 ---
 
@@ -155,5 +146,5 @@ Our winning strategy relies on a **Stacked Generalization** architecture:
 - [x] Feature Engineering (`02_Feature_Engineering.ipynb`) — **complete**
 - [x] Model Training — LGBM, XGBoost, CatBoost, RF, NN — **complete**
 - [x] Hyperparameter tuning — Optuna optimization — **complete**
-- [x] Final Ensemble — OOF Stacking — **complete**
-- [ ] Final project documentation and academic disclosure
+- [x] Final Ensemble — Nelder-Mead Optimization — **complete**
+- [x] Final project documentation and academic report generation — **complete**
