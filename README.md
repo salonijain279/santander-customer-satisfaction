@@ -28,8 +28,9 @@ santander-customer-satisfaction/
 │   ├── 10_Advanced_Feature_Engineering.ipynb
 │   ├── 11_Optuna_Tuning.ipynb
 │   ├── 12_Advanced_Tuning_XGB_Cat.ipynb
-│   ├── 13_Ensemble-best-allinone_saloni.ipynb  # Champion Nelder-Mead Blend
-│   └── 14_logistic-regression.ipynb           # Baseline exploration
+│   ├── 13_Ensemble-best-allinone_light_gbm.ipynb  # Champion Nelder-Mead Blend
+│   ├── 14_logistic-regression.ipynb               # Baseline exploration
+│   └── 15_Mlp_nn.ipynb                            # Final Neural Network Refinement
 ├── pickles/               # OOF and Test predictions (lgbm_oof.pkl, etc.)
 ├── requirements.txt
 └── README.md
@@ -88,11 +89,14 @@ The breakthrough notebook where we implemented:
 ### `11_Optuna_Tuning.ipynb` & `12_Advanced_Tuning_XGB_Cat.ipynb`
 Automated Bayesian hyperparameter optimization using **Optuna**. Ran 100 trials for each booster to find the "Gold Tier" configuration for `learning_rate`, `max_depth`, and `lambda` regularization.
 
-### `13_Ensemble-best-allinone_saloni.ipynb` — The Champion Model
+### `13_Ensemble-best-allinone_light_gbm.ipynb` — The Champion Model
 The master ensemble notebook. Instead of simple stacking, it uses **Nelder-Mead optimization** to find the precise mathematical weights for each of the "Big Five" models. This optimization achieved our peak performance of **0.82745** on the Private Leaderboard.
 
 ### `14_logistic-regression.ipynb` — Baseline Benchmarking
 An exploratory notebook focusing on the Linear Model family. While it served as a robust baseline (CV AUC ~0.804), it confirmed that the complex non-linear interactions in the data are best captured by our tree-based boosters.
+
+### `15_Mlp_nn.ipynb` — Final Neural Network Refinement
+Refined MLP architecture incorporating the class-imbalance weights (24:1) and the advanced feature interactions. This notebook produced the final deep-learning probabilities used in the champion blend.
 
 ---
 
